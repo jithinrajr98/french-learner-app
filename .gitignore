@@ -1,0 +1,7 @@
+.env
+french_transcript.txt
+english_transcript.txt
+__pycache__/
+*.pyc
+.venv/
+venv/

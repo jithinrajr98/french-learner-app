@@ -5,11 +5,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-# Install dependencies
-uv pip install -r requirements.txt
+# Install dependencies (virtual environment at .venv)
+uv venv && uv pip install -r requirements.txt && uv pip install pytest
 
 # Run the application
 uv run streamlit run app.py
+
+# Run tests
+uv run pytest tests/ -v
+
+# Run a single test
+uv run pytest tests/test_llm_evaluator.py::TestExtractJson::test_defense_attachment_case -v
 ```
 
 ## Environment Setup
@@ -18,9 +24,22 @@ Requires `GROQ_API_KEY` in `.env` file (see `.env.example`).
 
 ## Architecture
 
-Single-file Streamlit application (`app.py`) that:
-1. Extracts French transcripts from YouTube videos using `youtube-transcript-api`
-2. Translates to English via Groq API (llama-3.3-70b-versatile model)
-3. Saves output to `french_transcript.txt` and `english_transcript.txt` (overwritten each run)
+Multi-page Streamlit application with shared utilities:
 
-Long transcripts are chunked into 4000-character segments for translation.
+**Pages:**
+- `app.py` - Main page: extracts French transcripts from YouTube videos and translates to English via Groq API
+- `pages/1_Writing_Practice.py` - Practice page: users translate English sentences to French and receive LLM-powered feedback
+
+**Utilities (`utils/`):**
+- `groq_client.py` - Singleton Groq client shared across pages
+- `sentence_parser.py` - Parses transcripts into sentences, handles French abbreviations and punctuation edge cases
+- `llm_evaluator.py` - Evaluates user translations using LLM, extracts JSON from potentially markdown-wrapped responses
+
+**Data Flow:**
+1. User provides YouTube URL → French transcript extracted → translated to English → saved to `french_transcript.txt` and `english_transcript.txt`
+2. Writing Practice loads these files, parses into sentence pairs, shows English → user inputs French → LLM evaluates and scores
+
+**LLM Integration:**
+- Model: `llama-3.3-70b-versatile` via Groq API
+- Long texts chunked into 4000-character segments
+- JSON responses may be wrapped in markdown code blocks - `extract_json()` handles this

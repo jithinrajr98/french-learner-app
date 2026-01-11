@@ -8,6 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.groq_client import get_groq_client
 from utils.sentence_parser import load_and_parse_transcripts
 from utils.llm_evaluator import evaluate_translation
+from utils.audio_generator import play_french_audio
 
 st.set_page_config(
     page_title="French Writing Practice",
@@ -243,6 +244,7 @@ else:
             with col1:
                 st.markdown("**Original French:**")
                 st.code(french_original, language=None)
+                play_french_audio(french_original)
             with col2:
                 st.markdown("**Your Translation:**")
                 st.code(user_input, language=None)
@@ -258,6 +260,7 @@ else:
             if result.get("corrected_version"):
                 st.markdown("**Suggested correction:**")
                 st.success(result["corrected_version"])
+                play_french_audio(result["corrected_version"])
 
             # Next button
             if st.button("Next Sentence", type="primary"):
